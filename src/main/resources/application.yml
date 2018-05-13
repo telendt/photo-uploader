@@ -1,0 +1,12 @@
+#aws:
+#  accessKeyId: AWS_ACCESS_KEY_ID
+#  secretAccessKey: AWS_SECRET_ACCESS_KEY
+#  region: AWS_REGION # e.g. eu-west-1
+
+exif:
+  baseUrl: https://xl9l9t91ik.execute-api.eu-west-1.amazonaws.com/prod/
+#  timeout: 3s
+
+#upload:
+#  bucketName: company-code-challenge
+#  keyPrefix: code-challenge-username
