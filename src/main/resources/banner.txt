@@ -1,0 +1,9 @@
+
+${Ansi.BLUE}______  _             _           ${Ansi.RED} _   _         _                    _
+${Ansi.BLUE}| ___ \| |           | |          ${Ansi.RED}| | | |       | |                  | |
+${Ansi.BLUE}| |_/ /| |__    ___  | |_   ___   ${Ansi.RED}| | | | _ __  | |  ___    __ _   __| |  ___  _ __
+${Ansi.BLUE}|  __/ | '_ \  / _ \ | __| / _ \  ${Ansi.RED}| | | || '_ \ | | / _ \  / _` | / _` | / _ \| '__|
+${Ansi.BLUE}| |    | | | || (_) || |_ | (_) | ${Ansi.RED}| |_| || |_) || || (_) || (_| || (_| ||  __/| |
+${Ansi.BLUE}\_|    |_| |_| \___/  \__| \___/  ${Ansi.RED} \___/ | .__/ |_| \___/  \__,_| \__,_| \___||_|
+${Ansi.BLUE}                                  ${Ansi.RED}       | |
+${Ansi.BLUE}                                  ${Ansi.RED}       |_|    ${Ansi.GREEN} :: Spring Boot :: ${Ansi.DEFAULT}${AnsiStyle.FAINT}${spring-boot.formatted-version}
