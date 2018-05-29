@@ -1,6 +1,5 @@
 package com.example.uploader
 
-import com.example.uploader.config.AwsProperties
 import com.example.uploader.photo.model.Photo
 import com.example.uploader.photo.model.RequestPhotoParams
 import okhttp3.mockwebserver.MockResponse
@@ -30,6 +29,7 @@ import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import java.net.URL
 
@@ -46,7 +46,7 @@ class ApplicationTests {
         fun exifClient(server: MockWebServer) = WebClient.create(server.url("/").toString())
 
         @Bean
-        fun s3asyncClient(awsProperties: AwsProperties, server: MockWebServer): S3AsyncClient {
+        fun s3asyncClient(server: MockWebServer): S3AsyncClient {
             // default signer causes NPE for HTTP requests
             // https://github.com/aws/aws-sdk-java-v2/issues/437
             val overrideConfiguration = ClientOverrideConfiguration.builder()
@@ -56,9 +56,7 @@ class ApplicationTests {
             return S3AsyncClient.builder()
                     .endpointOverride(server.url("/").uri())
                     .overrideConfiguration(overrideConfiguration)
-                    .credentialsProvider(awsProperties)
-                    .region(awsProperties.region)
-                    .advancedConfiguration(awsProperties.getS3AdvancedConfiguration())
+                    .region(Region.EU_WEST_1)
                     .build()
         }
     }
