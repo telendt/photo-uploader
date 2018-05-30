@@ -22,7 +22,7 @@ export AWS_REGION=eu-west-1
        -Dupload.keyPrefix=KEY_PREFIX
 ```
 
-(or `./mvnw build` + `java -jar [...]`)
+(or *build* + `java -jar [...]`)
 
 Test call:
 
@@ -35,7 +35,7 @@ Running automated tests:
 
 ```
 ./mvnw test   # unit tests only
-./mvnw verify # unit + integration test
+./mvnw verify # unit + integration tests
 ```
 
 Building:
