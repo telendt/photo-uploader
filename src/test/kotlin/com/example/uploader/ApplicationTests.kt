@@ -150,6 +150,18 @@ class ApplicationTests {
         }
     }
 
+    @Test
+    fun addInvalid() {
+        val bodyInserter = BodyInserters.fromMultipartData(
+                "json", RequestPhotoParams(-1, "description")
+        ).with("photo", object : ByteArrayResource("PHOTO_CONTENT".toByteArray()) {
+            override fun getFilename(): String {
+                return "test.jpg"
+            }
+        })
+        webClient.post().uri("/photo").body(bodyInserter).exchange().expectStatus().isBadRequest
+    }
+
     @Disabled("disabled until learned how to mock s3 PUT object response")
     @Test
     fun addOk() {
