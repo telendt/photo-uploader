@@ -22,7 +22,7 @@ import java.util.*
 import java.util.concurrent.TimeoutException
 import javax.validation.Valid
 import javax.validation.ValidationException
-import javax.validation.constraints.Min
+import javax.validation.constraints.Positive
 
 @RestController
 @Validated
@@ -79,7 +79,7 @@ class PhotoController(private val uploadService: UploadService,
      * @return a {@code Mono} of {@code Photo}
      */
     @GetMapping("/{id}")
-    fun get(@PathVariable @Min(1) id: Long): Mono<Photo> {
+    fun get(@PathVariable @Positive id: Long): Mono<Photo> {
         return photoRepository.get(id)
                 .flatMap { photo ->
                     exifClient.get()

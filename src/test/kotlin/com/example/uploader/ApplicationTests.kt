@@ -86,7 +86,6 @@ class ApplicationTests {
                 .expectStatus().isBadRequest
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.error").isEqualTo("get.id: must be greater than or equal to 1")
     }
 
     @Test
