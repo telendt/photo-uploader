@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.Answers
 import org.mockito.BDDMockito.*
 import org.mockito.Mock
 import org.mockito.Mockito.mock
@@ -22,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
-import reactor.test.test
 import java.io.IOException
 import java.net.URL
 import java.time.OffsetDateTime
@@ -63,16 +61,16 @@ class PhotoControllerUnitTests {
     @Mock(stubOnly = true)
     private lateinit var uploadService: UploadService
 
-    @Mock(answer = Answers.RETURNS_SELF, stubOnly = true)
+    @Mock(stubOnly = true)
     private lateinit var exifClient: WebClient
 
-    @Mock(stubOnly = true)
-    private lateinit var photoRepository: ReactiveRepository<Photo>
+    private lateinit var photoRepository: InMemoryRepositoryStub<Photo>
 
     private lateinit var photoController: PhotoController
 
     @BeforeEach
     fun setUp() {
+        photoRepository = InMemoryRepositoryStub()
         photoController = PhotoController(uploadService, exifClient, photoRepository)
     }
 
@@ -94,15 +92,13 @@ class PhotoControllerUnitTests {
 
     @Test
     fun getMissing() {
-        given(photoRepository.get(1)).willReturn(Mono.empty())
-
         assertEqualValuesPublished(photoController.get(1), PhotoController.PHOTO_NOT_FOUND_MONO)
     }
 
     @ParameterizedTest(name = "#{index} {0}")
     @MethodSource("exifThrowableProvider")
     fun getExifErr(throwable: Throwable) {
-        given(photoRepository.get(1)).willReturn(Mono.just(TEST_PHOTO))
+        photoRepository.storageStub(mapOf(24L to TEST_PHOTO))
 
         val requestHeadersUriSpec = mock(RequestHeadersUriSpec::class.java, RETURNS_SELF)
         val responseSpec = mock(ResponseSpec::class.java, RETURNS_SELF)
@@ -114,13 +110,13 @@ class PhotoControllerUnitTests {
         given(responseSpec.bodyToMono(ExifMetadata::class.java))
                 .willReturn(Mono.error(throwable))
 
-        assertEqualValuesPublished(photoController.get(1), Mono.just(TEST_PHOTO))
+        assertEqualValuesPublished(photoController.get(24), Mono.just(TEST_PHOTO))
     }
 
     @Test
     fun getExifOk() {
         val exifMetadata = ExifMetadata(OffsetDateTime.now(), 500.0, 7.9, 0)
-        given(photoRepository.get(1)).willReturn(Mono.just(TEST_PHOTO))
+        photoRepository.storageStub(mapOf(24L to TEST_PHOTO))
 
         val requestHeadersUriSpec = mock(RequestHeadersUriSpec::class.java, RETURNS_SELF)
         val responseSpec = mock(ResponseSpec::class.java, RETURNS_SELF)
@@ -132,15 +128,34 @@ class PhotoControllerUnitTests {
         given(responseSpec.bodyToMono(ExifMetadata::class.java))
                 .willReturn(Mono.just(exifMetadata))
 
-        assertEqualValuesPublished(photoController.get(1), Mono.just(TEST_PHOTO.copy(exif = exifMetadata)))
+        assertEqualValuesPublished(photoController.get(24), Mono.just(TEST_PHOTO.copy(exif = exifMetadata)))
     }
 
     @Test
     fun addFailure() {
         val filePart = FakePhotoFilePart()
-        given(uploadService.upload(anyString(), safeSame(filePart)))
-                .willReturn(Mono.error<URL>(IOException("upload failed")))
-        val actual = photoController.add(RequestPhotoParams(1, "description"), filePart)
-        actual.test().expectError()
+        val err = IOException("upload failed")
+
+        given(uploadService.upload(anyString(), safeSame(filePart))).willReturn(Mono.error<URL>(err))
+
+        val actual = photoController.add(RequestPhotoParams(123, "description"), filePart)
+        assertEqualValuesPublished(actual, Mono.error<Photo>(err))
+    }
+
+    @Test
+    fun addSuccess() {
+        val filePart = FakePhotoFilePart()
+        val url = URL("http://example.com")
+
+        given(uploadService.upload(anyString(), safeSame(filePart))).willReturn(Mono.just(url))
+
+        val actual = photoController.add(RequestPhotoParams(123, "description"), filePart)
+        assertEqualValuesPublished(actual, Mono.just(Photo(
+                id = 1,
+                user = 123,
+                description = "description",
+                url = url,
+                exif = null
+        )))
     }
 }

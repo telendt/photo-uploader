@@ -17,17 +17,17 @@ interface ReactiveRepository<T> {
 @Repository
 class InMemoryRepository<T> : ReactiveRepository<T> {
     private val inc = AtomicLong(1)
-    private val map = ConcurrentHashMap<Long, T>()
+    protected val storage = ConcurrentHashMap<Long, T>()
 
     override fun <S : T> add(valueGen: (key: Long) -> S): Mono<S> {
         val key = inc.getAndIncrement()
         val value = valueGen(key)
-        map[key] = value
+        storage[key] = value
         return Mono.just(value)
     }
 
     override fun get(key: Long): Mono<T> {
-        val value = map[key]
+        val value = storage[key]
         return if (value == null) Mono.empty() else Mono.just(value)
     }
 }

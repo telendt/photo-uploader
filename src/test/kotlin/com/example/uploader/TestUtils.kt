@@ -90,3 +90,8 @@ class FakePhotoFilePart(
     override fun transferTo(dest: File): Mono<Void> = if (copySuccess) Mono.empty() else Mono.error(IOException())
 }
 
+class InMemoryRepositoryStub<T> : InMemoryRepository<T>() {
+    fun storageStub(stub: Map<Long, T>) {
+        this.storage.putAll(stub)
+    }
+}
