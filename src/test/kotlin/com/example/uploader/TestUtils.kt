@@ -91,7 +91,8 @@ class FakePhotoFilePart(
 }
 
 class InMemoryRepositoryStub<T> : InMemoryRepository<T>() {
-    fun storageStub(stub: Map<Long, T>) {
-        this.storage.putAll(stub)
+    fun storageStub(vararg entries: Pair<Long, T>) {
+        this.storage.clear()
+        this.storage.putAll(entries)
     }
 }

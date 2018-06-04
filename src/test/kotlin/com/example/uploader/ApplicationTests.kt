@@ -10,12 +10,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
@@ -25,7 +23,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider
@@ -59,13 +56,16 @@ class ApplicationTests {
                     .region(Region.EU_WEST_1)
                     .build()
         }
+
+        @Bean
+        fun photoRepository() = InMemoryRepositoryStub<Photo>()
     }
 
     @Autowired
     private lateinit var webClient: WebTestClient
 
-    @MockBean
-    private lateinit var photoRepository: ReactiveRepository<Photo>
+    @Autowired
+    private lateinit var photoRepository: InMemoryRepositoryStub<Photo>
 
     @Autowired
     private lateinit var mockServer: MockWebServer
@@ -90,7 +90,8 @@ class ApplicationTests {
 
     @Test
     fun getMissing() {
-        given(photoRepository.get(1)).willReturn(Mono.empty())
+        photoRepository.storageStub()
+
         webClient.get().uri("/photo/1").exchange()
                 .expectStatus().isNotFound
                 .expectBody()
@@ -101,7 +102,7 @@ class ApplicationTests {
     @Test
     fun getNoExif() {
         val photo = Photo(id = 1, user = 2, description = "XYZ", url = URL("http://example.com"))
-        given(photoRepository.get(1)).willReturn(Mono.just(photo))
+        photoRepository.storageStub(1L to photo)
 
         prepareResponse { it.setResponseCode(404) }
 
@@ -122,7 +123,7 @@ class ApplicationTests {
     @Test
     fun getExifOk() {
         val photo = Photo(id = 1, user = 2, description = "XYZ", url = URL("http://example.com"))
-        given(photoRepository.get(1)).willReturn(Mono.just(photo))
+        photoRepository.storageStub(1L to photo)
 
         prepareResponse {
             it.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)

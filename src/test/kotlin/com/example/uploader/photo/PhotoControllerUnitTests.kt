@@ -98,7 +98,7 @@ class PhotoControllerUnitTests {
     @ParameterizedTest(name = "#{index} {0}")
     @MethodSource("exifThrowableProvider")
     fun getExifErr(throwable: Throwable) {
-        photoRepository.storageStub(mapOf(24L to TEST_PHOTO))
+        photoRepository.storageStub(24L to TEST_PHOTO)
 
         val requestHeadersUriSpec = mock(RequestHeadersUriSpec::class.java, RETURNS_SELF)
         val responseSpec = mock(ResponseSpec::class.java, RETURNS_SELF)
@@ -116,7 +116,7 @@ class PhotoControllerUnitTests {
     @Test
     fun getExifOk() {
         val exifMetadata = ExifMetadata(OffsetDateTime.now(), 500.0, 7.9, 0)
-        photoRepository.storageStub(mapOf(24L to TEST_PHOTO))
+        photoRepository.storageStub(24L to TEST_PHOTO)
 
         val requestHeadersUriSpec = mock(RequestHeadersUriSpec::class.java, RETURNS_SELF)
         val responseSpec = mock(ResponseSpec::class.java, RETURNS_SELF)
