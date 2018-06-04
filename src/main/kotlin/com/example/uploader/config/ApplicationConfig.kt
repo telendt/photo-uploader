@@ -1,6 +1,6 @@
 package com.example.uploader.config
 
-import com.example.uploader.UploadService
+import com.example.uploader.UploadServiceImpl
 import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
@@ -49,7 +49,7 @@ class ApplicationConfig {
             .build()
 
     @Bean
-    fun uploaderService(uploadProperties: UploadProperties, s3Client: S3AsyncClient) = UploadService(
+    fun uploadService(uploadProperties: UploadProperties, s3Client: S3AsyncClient) = UploadServiceImpl(
             uploadProperties.bucketName,
             uploadProperties.keyPrefix,
             s3Client,

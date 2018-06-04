@@ -1,11 +1,9 @@
 package com.example.uploader.photo
 
-import com.example.uploader.ReactiveRepository
-import com.example.uploader.ResponseException
-import com.example.uploader.UploadService
-import com.example.uploader.assertEqualValuesPublished
+import com.example.uploader.*
 import com.example.uploader.photo.model.ExifMetadata
 import com.example.uploader.photo.model.Photo
+import com.example.uploader.photo.model.RequestPhotoParams
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,8 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.BDDMockito.RETURNS_SELF
-import org.mockito.BDDMockito.given
+import org.mockito.Answers
+import org.mockito.BDDMockito.*
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.springframework.http.HttpStatus
@@ -24,6 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.test.test
+import java.io.IOException
 import java.net.URL
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeoutException
@@ -60,13 +60,13 @@ class PhotoControllerUnitTests {
         }
     }
 
-    @Mock
+    @Mock(stubOnly = true)
     private lateinit var uploadService: UploadService
 
-    @Mock
+    @Mock(answer = Answers.RETURNS_SELF, stubOnly = true)
     private lateinit var exifClient: WebClient
 
-    @Mock
+    @Mock(stubOnly = true)
     private lateinit var photoRepository: ReactiveRepository<Photo>
 
     private lateinit var photoController: PhotoController
@@ -136,7 +136,11 @@ class PhotoControllerUnitTests {
     }
 
     @Test
-    fun add() {
-        // TODO: finish
+    fun addFailure() {
+        val filePart = FakePhotoFilePart()
+        given(uploadService.upload(anyString(), safeSame(filePart)))
+                .willReturn(Mono.error<URL>(IOException("upload failed")))
+        val actual = photoController.add(RequestPhotoParams(1, "description"), filePart)
+        actual.test().expectError()
     }
 }

@@ -8,20 +8,22 @@ import reactor.core.publisher.toMono
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import sun.security.action.GetPropertyAction
 import java.net.URI
 import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.file.FileSystem
-import java.security.AccessController
 
-class UploadService(
+interface UploadService {
+    fun upload(fileName: String, filePart: FilePart): Mono<URL>
+}
+
+class UploadServiceImpl(
         private val bucketName: String,
         private val keyPrefix: String,
         private val s3client: S3AsyncClient,
-        private val fileSystem: FileSystem) {
+        private val fileSystem: FileSystem) : UploadService {
 
-    fun upload(fileName: String, filePart: FilePart): Mono<URL> {
+    override fun upload(fileName: String, filePart: FilePart): Mono<URL> {
         return filePartToBodyProvider(fileName, filePart)
                 .flatMap { reqBody ->
                     val key = URI("$keyPrefix/").resolve(fileName)
@@ -44,8 +46,7 @@ class UploadService(
                     createTempFile(
                             prefix = "upload",
                             suffix = fileName,
-                            directory = fileSystem.getPath(
-                                    AccessController.doPrivileged(GetPropertyAction("java.io.tmpdir"))).toFile())
+                            directory = fileSystem.getPath(System.getProperty("java.io.tmpdir")).toFile())
                 }
                 mono.flatMap { tempFile ->
                     filePart.transferTo(tempFile)

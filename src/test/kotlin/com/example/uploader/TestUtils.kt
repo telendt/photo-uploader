@@ -1,6 +1,7 @@
 package com.example.uploader
 
 import org.assertj.core.api.Assertions
+import org.mockito.Mockito
 import org.reactivestreams.Publisher
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.http.HttpHeaders
@@ -68,11 +69,13 @@ class ResponseException(status: HttpStatus) :
                 null)
 
 
+inline fun <reified T : Any> safeSame(value: T): T = Mockito.same(value) ?: value
+
 class FakePhotoFilePart(
         private val mediaType: MediaType = MediaType.IMAGE_JPEG,
         private val copySuccess: Boolean = true) : FilePart {
 
-    override fun content() = Flux.just(DefaultDataBufferFactory().wrap("ferfe".toByteArray(Charsets.UTF_8)))
+    override fun content() = Flux.just(DefaultDataBufferFactory().wrap("TEST".toByteArray(Charsets.UTF_8)))
 
     override fun headers(): HttpHeaders {
         val headers = HttpHeaders()
